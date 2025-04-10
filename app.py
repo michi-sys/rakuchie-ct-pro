@@ -79,8 +79,12 @@ with st.form("dose_form"):
             st.session_state.records.append(record)
             st.session_state.last_record = record
             st.success("記録が追加されました！")
-            st.session_state.reset_check = True  # 次回リセットフラグON
-            st.experimental_rerun()  # ページをリロードしてチェックを初期化
+            st.session_state.reset_check = True  # フォーム外で再実行処理へ
+
+# フォームの外でリロード処理を実行（安全な位置）
+if st.session_state.reset_check:
+    st.session_state.reset_check = False
+    st.experimental_rerun()
 
 # 直前の記録をCSVで保存
 if st.session_state.last_record:
