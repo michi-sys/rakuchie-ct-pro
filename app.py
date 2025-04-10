@@ -2,6 +2,7 @@
 import streamlit as st
 from datetime import date
 import pandas as pd
+import io
 
 # Session state for record keeping
 if 'records' not in st.session_state:
@@ -51,25 +52,33 @@ with st.form("dose_form"):
     submitted = st.form_submit_button("記録する")
 
     if submitted:
-        record = {
-            "日付": date.today().isoformat(),
-            "患者ID": patient_id,
-            "年齢": age,
-            "性別": gender,
-            "検査部位": exam_area,
-            "CTDIvol": ctdi,
-            "DLP": dlp,
-            "コメント": comment
-        }
-        st.session_state.records.append(record)
-        st.success("記録が追加されました！")
+        if not all(checks.values()):
+            st.error("チェックリストをすべて完了してください！")
+        else:
+            record = {
+                "日付": date.today().isoformat(),
+                "患者ID": patient_id,
+                "年齢": age,
+                "性別": gender,
+                "検査部位": exam_area,
+                "CTDIvol": ctdi,
+                "DLP": dlp,
+                "コメント": comment
+            }
+            st.session_state.records.append(record)
+            st.success("記録が追加されました！")
+
+            # 単一レコードをCSVに変換してダウンロードリンクを表示
+            df_single = pd.DataFrame([record])
+            csv_single = df_single.to_csv(index=False).encode('utf-8')
+            st.download_button("この記録をCSV保存", csv_single, "ct_record_" + date.today().isoformat() + ".csv", "text/csv")
 
 # 記録の表示
 st.header("記録一覧")
 if st.session_state.records:
     df = pd.DataFrame(st.session_state.records)
     st.dataframe(df)
-    csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("CSVでダウンロード", csv, "ct_dose_records.csv", "text/csv")
+    csv_all = df.to_csv(index=False).encode('utf-8')
+    st.download_button("全記録をCSVでダウンロード", csv_all, "ct_dose_records.csv", "text/csv")
 else:
     st.info("まだ記録はありません。")
