@@ -7,6 +7,8 @@ import io
 # Session state for record keeping
 if 'records' not in st.session_state:
     st.session_state.records = []
+if 'last_record' not in st.session_state:
+    st.session_state.last_record = None
 
 st.title("らくチエ CT Pro")
 
@@ -66,12 +68,14 @@ with st.form("dose_form"):
                 "コメント": comment
             }
             st.session_state.records.append(record)
+            st.session_state.last_record = record
             st.success("記録が追加されました！")
 
-            # 単一レコードをCSVに変換してダウンロードリンクを表示
-            df_single = pd.DataFrame([record])
-            csv_single = df_single.to_csv(index=False).encode('utf-8')
-            st.download_button("この記録をCSV保存", csv_single, "ct_record_" + date.today().isoformat() + ".csv", "text/csv")
+# 直前の記録をCSVで保存
+if st.session_state.last_record:
+    df_single = pd.DataFrame([st.session_state.last_record])
+    csv_single = df_single.to_csv(index=False).encode('utf-8')
+    st.download_button("この記録をCSV保存", csv_single, "ct_record_" + date.today().isoformat() + ".csv", "text/csv")
 
 # 記録の表示
 st.header("記録一覧")
