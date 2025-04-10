@@ -9,15 +9,8 @@ if 'records' not in st.session_state:
     st.session_state.records = []
 if 'last_record' not in st.session_state:
     st.session_state.last_record = None
-if 'reset_check' not in st.session_state:
-    st.session_state.reset_check = False
 
 st.title("らくチエ CT Pro")
-
-# フォームの外でリロード処理を実行（安全な位置）
-if st.session_state.reset_check:
-    st.session_state.reset_check = False
-    st.experimental_rerun()
 
 st.header("1. 撮影前チェックリスト")
 contrast = st.radio("造影の有無を選択してください", ["造影なし", "造影あり"])
@@ -42,12 +35,10 @@ if contrast == "造影あり":
         "注入ラインの確保（適切な太さ・部位）"
     ]
 
-# 初期化フラグを見てチェック状態をリセット
-for key in check_items:
-    if key not in st.session_state:
-        st.session_state[key] = False
-
-checks = {item: st.checkbox(item, key=item) for item in check_items}
+# チェック状態の初期化（毎回 False にセット）
+checks = {}
+for item in check_items:
+    checks[item] = st.checkbox(item, key=item)
 
 st.header("2. 被ばく線量の記録")
 
@@ -82,9 +73,6 @@ with st.form("dose_form"):
             st.session_state.records.append(record)
             st.session_state.last_record = record
             st.success("記録が追加されました！")
-            # チェック状態を初期化
-            for key in check_items:
-                st.session_state[key] = False
 
 # 直前の記録をCSVで保存
 if st.session_state.last_record:
