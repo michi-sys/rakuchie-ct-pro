@@ -9,6 +9,8 @@ if 'records' not in st.session_state:
     st.session_state.records = []
 if 'last_record' not in st.session_state:
     st.session_state.last_record = None
+if 'reset_check' not in st.session_state:
+    st.session_state.reset_check = False
 
 st.title("らくチエ CT Pro")
 
@@ -35,7 +37,14 @@ if contrast == "造影あり":
         "注入ラインの確保（適切な太さ・部位）"
     ]
 
-checks = {item: st.checkbox(item) for item in check_items}
+# 初期化フラグを見てチェック状態をリセット
+if st.session_state.reset_check:
+    for key in check_items:
+        if key in st.session_state:
+            del st.session_state[key]
+    st.session_state.reset_check = False
+
+checks = {item: st.checkbox(item, key=item) for item in check_items}
 
 st.header("2. 被ばく線量の記録")
 
@@ -70,6 +79,8 @@ with st.form("dose_form"):
             st.session_state.records.append(record)
             st.session_state.last_record = record
             st.success("記録が追加されました！")
+            st.session_state.reset_check = True  # 次回リセットフラグON
+            st.experimental_rerun()  # ページをリロードしてチェックを初期化
 
 # 直前の記録をCSVで保存
 if st.session_state.last_record:
