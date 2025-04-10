@@ -14,6 +14,11 @@ if 'reset_check' not in st.session_state:
 
 st.title("らくチエ CT Pro")
 
+# フォームの外でリロード処理を実行（安全な位置）
+if st.session_state.reset_check:
+    st.session_state.reset_check = False
+    st.experimental_rerun()
+
 st.header("1. 撮影前チェックリスト")
 contrast = st.radio("造影の有無を選択してください", ["造影なし", "造影あり"])
 
@@ -38,11 +43,9 @@ if contrast == "造影あり":
     ]
 
 # 初期化フラグを見てチェック状態をリセット
-if st.session_state.reset_check:
-    for key in check_items:
-        if key in st.session_state:
-            del st.session_state[key]
-    st.session_state.reset_check = False
+for key in check_items:
+    if key not in st.session_state:
+        st.session_state[key] = False
 
 checks = {item: st.checkbox(item, key=item) for item in check_items}
 
@@ -79,12 +82,9 @@ with st.form("dose_form"):
             st.session_state.records.append(record)
             st.session_state.last_record = record
             st.success("記録が追加されました！")
-            st.session_state.reset_check = True  # フォーム外で再実行処理へ
-
-# フォームの外でリロード処理を実行（安全な位置）
-if st.session_state.reset_check:
-    st.session_state.reset_check = False
-    st.experimental_rerun()
+            # チェック状態を初期化
+            for key in check_items:
+                st.session_state[key] = False
 
 # 直前の記録をCSVで保存
 if st.session_state.last_record:
